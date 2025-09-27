@@ -54,7 +54,7 @@ def generate_launch_description():
     default_world = os.path.join(
         get_package_share_directory(package_name),
         'worlds',
-        'obstacles.world'
+        'turtlebot3_house.world'
         )    
     
     world = LaunchConfiguration('world')
@@ -104,15 +104,6 @@ def generate_launch_description():
         ]
     )
 
-    slam_launch = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([
-                    os.path.join(get_package_share_directory('slam_toolbox'),'launch','online_async_launch.py')
-                ]),
-                launch_arguments={
-                    'slam_params_file': os.path.join(get_package_share_directory(package_name), 'config', 'mapping_params_online_async.yaml'),
-                    'use_sim_time': 'true'
-                }.items()
-    )
 
 
     # Code for delaying a node (I haven't tested how effective it is)
@@ -144,6 +135,5 @@ def generate_launch_description():
         diff_drive_spawner,
         joint_broad_spawner,
         ros_gz_bridge,
-        slam_launch,
         rviz2,
     ])
