@@ -26,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
   - Class: nav2_rviz_plugins/Navigation 2
     Name: Navigation 2
 Visualization Manager:
@@ -160,13 +160,7 @@ Visualization Manager:
           Value: true
         laser_frame:
           Value: true
-        left_wheel:
-          Value: true
-        map:
-          Value: true
         odom:
-          Value: true
-        right_wheel:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -174,20 +168,7 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        map:
-          odom:
-            base_link:
-              base_footprint:
-                {}
-              chassis:
-                caster_wheel:
-                  {}
-                laser_frame:
-                  {}
-              left_wheel:
-                {}
-              right_wheel:
-                {}
+        {}
       Update Interval: 0
       Value: true
     - Alpha: 0.699999988079071
@@ -320,11 +301,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 123.75910949707031
+      Scale: 89.13452911376953
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 5.880702018737793
-      Y: -0.10012558102607727
+      X: 1.5756951570510864
+      Y: -0.2231866717338562
     Saved: ~
 Window Geometry:
   Displays:
