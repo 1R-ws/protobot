@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<sdf version="1.10">
+  <model name="wall_segment">
+    <static>true</static>
+    <link name="link">
+      <collision name="col"><geometry><box><size>20 0.2 3</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>22 0.2 3</size></box></geometry>
+        <material><diffuse>0.95 0.95 0.93 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+</sdf>
