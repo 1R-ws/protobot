@@ -22,8 +22,9 @@ class PoseManagerNode(Node):
         self.use_sim_time = self.get_parameter_or('use_sim_time', False).value
 
         # Dapatkan path config
-        pkg_share = get_package_share_directory('protobot')
-        self.saved_poses_file = os.path.join(pkg_share, 'config', 'saved_poses.yaml')
+        # pkg_share = get_package_share_directory('protobot')
+        # self.saved_poses_file = os.path.join(pkg_share, 'config', 'saved_poses.yaml')
+        self.saved_poses_file = '/home/irfan/ros2_ws/src/protobot/config/saved_poses.yaml'
 
         # Pastikan fail wujud
         if not os.path.exists(self.saved_poses_file):

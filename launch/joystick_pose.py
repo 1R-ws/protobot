@@ -13,27 +13,27 @@ class JoystickPose(Node):
         self.create_subscription(Joy, '/joy', self.joy_cb, 10)
 
         # Butang: X, O, □, △
-        self.btn_save_rumah = 0   # X
-        self.btn_go_rumah   = 1   # O
-        self.btn_save_dapur = 2   # □
-        self.btn_go_dapur   = 3   # △
+        self.btn_save_table1 = 0   # X
+        self.btn_go_table1   = 1   # O
+        self.btn_save_table2 = 2   # □
+        self.btn_go_table2   = 3   # △
 
-        self.get_logger().info("JOYSTICK POSE: X=Simpan 'rumah', O=Pergi 'rumah', □=Simpan 'dapur', △=Pergi 'dapur'")
+        self.get_logger().info("JOYSTICK POSE: X=Simpan 'table1', O=Pergi 'table1', □=Simpan 'table2', △=Pergi 'table2'")
 
     def joy_cb(self, msg):
         b = msg.buttons
-        if b[self.btn_save_rumah] == 1:
-            self.pub_save.publish(String(data='rumah'))
-            self.get_logger().info("SIMPAN: rumah")
-        if b[self.btn_go_rumah] == 1:
-            self.pub_go.publish(String(data='rumah'))
-            self.get_logger().info("PERGI: rumah")
-        if b[self.btn_save_dapur] == 1:
-            self.pub_save.publish(String(data='dapur'))
-            self.get_logger().info("SIMPAN: dapur")
-        if b[self.btn_go_dapur] == 1:
-            self.pub_go.publish(String(data='dapur'))
-            self.get_logger().info("PERGI: dapur")
+        if b[self.btn_save_table1] == 1:
+            self.pub_save.publish(String(data='table1'))
+            self.get_logger().info("SIMPAN: table1")
+        if b[self.btn_go_table1] == 1:
+            self.pub_go.publish(String(data='table1'))
+            self.get_logger().info("PERGI: table1")
+        if b[self.btn_save_table2] == 1:
+            self.pub_save.publish(String(data='table2'))
+            self.get_logger().info("SIMPAN: table2")
+        if b[self.btn_go_table2] == 1:
+            self.pub_go.publish(String(data='table2'))
+            self.get_logger().info("PERGI: table2")
 
 
 def main():
