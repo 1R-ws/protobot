@@ -13,11 +13,7 @@
 
                 <param name="baud_rate">57600</param>
                 <param name="timeout_ms">1000</param>
-<<<<<<< HEAD
                 <param name="enc_counts_per_rev">1750</param>
-=======
-                <param name="enc_counts_per_rev">3436</param>
->>>>>>> c6e1dbf19411ef15e9ee444b9425b260822f5502
             <!--     <param name="baud_rate">115200</param>
                 <param name="timeout_ms">1000</param>
                 <param name="enc_counts_per_rev">616</param>  -->
