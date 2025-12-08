@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<sdf version="1.10">
+  <model name="lecture_desk">
+    <static>true</static>
+
+    <link name="desk">
+
+      <!-- Inertia -->
+      <inertial>
+        <mass>15</mass>
+        <inertia>
+          <ixx>0.3</ixx><iyy>0.3</iyy><izz>0.3</izz>
+        </inertia>
+      </inertial>
+
+      <!-- TABLETOP -->
+      <visual name="top">
+        <pose>0 0 0.75 0 0 0</pose>
+        <geometry>
+          <box><size>1.4 0.7 0.04</size></box>
+        </geometry>
+        <material>
+          <diffuse>0.55 0.37 0.20 1</diffuse> <!-- Wood color -->
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+
+      <collision name="top_col">
+        <pose>0 0 0.75 0 0 0</pose>
+        <geometry><box><size>1.4 0.7 0.04</size></box></geometry>
+      </collision>
+
+      <!-- LEGS -->
+      <visual name="leg1"><pose> 0.65  0.3 0.375 0 0 0</pose><geometry><cylinder><radius>0.015</radius><length>0.75</length></cylinder></geometry><material><diffuse>0.2 0.2 0.2 1</diffuse></material></visual>
+      <visual name="leg2"><pose>-0.65  0.3 0.375 0 0 0</pose><geometry><cylinder><radius>0.015</radius><length>0.75</length></cylinder></geometry><material><diffuse>0.2 0.2 0.2 1</diffuse></material></visual>
+      <visual name="leg3"><pose> 0.65 -0.3 0.375 0 0 0</pose><geometry><cylinder><radius>0.015</radius><length>0.75</length></cylinder></geometry><material><diffuse>0.2 0.2 0.2 1</diffuse></material></visual>
+      <visual name="leg4"><pose>-0.65 -0.3 0.375 0 0 0</pose><geometry><cylinder><radius>0.015</radius><length>0.75</length></cylinder></geometry><material><diffuse>0.2 0.2 0.2 1</diffuse></material></visual>
+
+      <collision name="leg1_col"><pose> 0.65  0.3 0.375 0 0 0</pose><geometry><cylinder><radius>0.015</radius><length>0.75</length></cylinder></geometry></collision>
+      <collision name="leg2_col"><pose>-0.65  0.3 0.375 0 0 0</pose><geometry><cylinder><radius>0.015</radius><length>0.75</length></cylinder></geometry></collision>
+      <collision name="leg3_col"><pose> 0.65 -0.3 0.375 0 0 0</pose><geometry><cylinder><radius>0.015</radius><length>0.75</length></cylinder></geometry></collision>
+      <collision name="leg4_col"><pose>-0.65 -0.3 0.375 0 0 0</pose><geometry><cylinder><radius>0.015</radius><length>0.75</length></cylinder></geometry></collision>
+
+    </link>
+  </model>
+</sdf>
