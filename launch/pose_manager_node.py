@@ -65,6 +65,7 @@ class PoseManagerNode(Node):
         self.create_subscription(String, '/go_to_pose', self.go_to_pose_cb, 10)
         self.create_subscription(String, '/cancel_pose', self.cancel_pose_cb, 10)
         self.create_subscription(String, '/show_queue', self.show_queue_cb, 10)
+        self.create_subscription(String, '/paper_request', self.paper_request_cb, 10)  # <-- new
 
         # --------------------------------------------------
         # Timers
@@ -73,6 +74,43 @@ class PoseManagerNode(Node):
         self.create_timer(1.0, self.publish_robot_pose)
 
         self.get_logger().info("Pose Manager READY (FULL FIXED VERSION)")
+
+    # ==================================================
+    # PAPER REQUEST CALLBACK (from ESP32)
+    # ==================================================
+    def paper_request_cb(self, msg):
+        """
+        Terima arahan dari PaperSerialFilter:
+        Contoh msg.data: "request table1" atau "cancel table2"
+        """
+        try:
+            parts = msg.data.split()
+            if len(parts) != 2:
+                self.get_logger().warning(f"Format msg salah: {msg.data}")
+                return
+            action, table_name = parts
+
+            if action == "request":
+                # Tambah ke queue navigasi
+                if table_name not in self.request_queue:
+                    self.request_queue.append(table_name)
+                    self.distance_cache.pop(table_name, None)
+                    self.queue_wait_start = None
+                    self.publish_queue_status()
+                    self.get_logger().info(f"📥 Queue updated: REQUEST {table_name}")
+            elif action == "cancel":
+                # Buang dari queue navigasi
+                if table_name in self.request_queue:
+                    self.request_queue.remove(table_name)
+                if self.is_navigating and table_name == self.current_target and self.current_goal_handle:
+                    self.current_goal_handle.cancel_goal_async()
+                self.publish_queue_status()
+                self.get_logger().info(f"📤 Queue updated: CANCEL {table_name}")
+            else:
+                self.get_logger().warning(f"Action tidak dikenali: {action}")
+
+        except Exception as e:
+            self.get_logger().error(f"paper_request_cb error: {e}")
 
     # ==================================================
     # ROBOT POSE MONITOR
