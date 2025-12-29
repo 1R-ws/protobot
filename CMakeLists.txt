@@ -37,6 +37,7 @@ install(
   PROGRAMS
     launch/pose_manager_node.py
     launch/joystick_pose.py
+    launch/paper_serial_filter.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
