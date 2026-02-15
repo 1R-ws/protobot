@@ -1,4 +1,4 @@
-# 🛰️ PROTOBOT – Autonomous Differential Drive Robot (ROS 2 Jazzy)
+# PROTOBOT – Autonomous Differential Drive Robot (ROS 2 Jazzy)
 
 This repository contains the main robot stack for **Protobot**, a differential drive mobile robot developed using ROS 2 Jazzy.
 
@@ -49,9 +49,7 @@ ros2 launch protobot lauch_robot.lauch.py
 Open Terminal 2:
 
 ```bash
-ros2 launch protobot lauch_sim_control.launch.py \
-use_slam_option:=online_async_slam \
-use_sim_time:=false
+ros2 launch protobot lauch_sim_control.launch.py use_slam_option:=online_async_slam use_sim_time:=false
 ```
 
 This will start:
@@ -143,47 +141,28 @@ Robot should navigate to the saved location.
 
 ---
 
+
 # 📍 4. LOCALIZATION MODE (USE SAVED MAP)
 
 After mapping is complete, switch to localization mode.
 
 ---
 
-## Step 1 — Launch Robot
-
-Terminal 1:
-
-```bash
-ros2 launch protobot lauch_robot.lauch.py
-```
-
----
-
-## Step 2 — Launch Localization
-
-Terminal 2:
-
-```bash
-ros2 launch protobot lauch_sim_control.launch.py \
-use_slam_option:=mapper_params_localization \
-use_sim_time:=false
-```
-
----
-
-# 🛠 5. EDIT MAP FILE BEFORE LOCALIZATION
+## Step 1 — Edit Map File Before Localization
 
 Open:
 
 ```
+
 protobot/config/mapper_params_localization.yaml
-```
+
+````
 
 Change:
 
 ```yaml
 map_file_name: ./src/protobot/maps/exam_hall
-```
+````
 
 To:
 
@@ -194,6 +173,27 @@ map_file_name: ./src/protobot/maps/my_map
 Replace `my_map` with your saved map filename.
 
 ---
+
+## Step 2 — Launch Robot
+
+Terminal 1:
+
+```bash
+ros2 launch protobot lauch_robot.lauch.py
+```
+
+---
+
+## Step 3 — Launch Localization
+
+Terminal 2:
+
+```bash
+ros2 launch protobot lauch_sim_control.launch.py use_slam_option:=mapper_params_localization use_sim_time:=false
+```
+
+---
+
 
 # ⚠ IMPORTANT REMINDERS
 
