@@ -20,6 +20,14 @@ Tested on:
 
 ---
 
+## Simulation Setup
+
+For setup steps and to run the **simulation (Gazebo)**, please refer to the [Simulation Instructions](simulation.md#introduction).  
+
+
+
+---
+
 # 🗺️ 1. MAPPING MODE (SLAM)
 
 Mapping is performed using `slam_toolbox` with `online_async_slam`.
