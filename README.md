@@ -245,9 +245,9 @@ ros2 topic pub /go_to_pose std_msgs/msg/String "{data: 'table1'}" --once
 6. Save waypoint poses (tables)
 
 **Localization:**
-1. Launch robot  
-2. Launch localization mode  
-3. Set initial pose if required  
+1. Start at home_position  
+2. Launch robot  
+3. Launch localization mode
 4. Navigate to saved tables
 
 ---
