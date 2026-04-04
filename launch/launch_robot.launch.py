@@ -120,34 +120,6 @@ def generate_launch_description():
            )
        ]))
 
-
-    # paper_weight_node = Node(
-    #     package='protobot',
-    #     executable='paper_weight_serial.py',
-    #     name='paper_weight_serial',
-    #     output='screen',
-    #     parameters=[{
-    #         'port': '/dev/ttyUSB1',
-    #         'baud': 115200,
-    #         'publish_rate': 10.0
-    #     }]
-    # )
-
-    # pose_manager_node = Node(
-    #     package='protobot',
-    #     executable='pose_manager_node.py',
-    #     name='pose_manager_node',
-    #     output='screen',
-    #     parameters=[{
-    #         'paper_threshold': 0.20,
-    #         'trigger_count': 5,
-    #         'home_pose_name': 'home',
-    #         'map_frame': 'map',
-    #         'base_frame': 'base_link',
-    #         'wait_at_goal_sec': 10.0
-    #     }]
-    # )
-
     # Final launch description
     return LaunchDescription([
         rsp,
@@ -157,7 +129,5 @@ def generate_launch_description():
         delayed_diff_drive_spawner,
         delayed_joint_broad_spawner,
         node_hokuyo_drive,
-        # paper_weight_node,
-        # pose_manager_node
         # hokuyo_node,
     ])

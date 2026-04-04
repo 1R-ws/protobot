@@ -4,7 +4,7 @@ from rclpy.node import Node
 from rclpy.action import ActionClient
 from rclpy.duration import Duration
 from nav2_msgs.action import NavigateToPose, ComputePathToPose
-from std_msgs.msg import String, Float32
+from std_msgs.msg import String
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
@@ -48,26 +48,6 @@ class PoseManagerNode(Node):
         self.pose_pub = self.create_publisher(String, '/robot_pose', 10)
 
         # --------------------------------------------------
-        # Paper low -> Go HOME first (Nav2)
-        # --------------------------------------------------
-        self.declare_parameter('paper_threshold', 0.20)   # unit ikut /paper_weight (kg contoh)
-        self.declare_parameter('trigger_count', 5)       # berapa kali berturut2 < threshold
-        self.declare_parameter('home_pose_name', 'home') # pose "home" mesti wujud dalam saved_poses.yaml
-
-        self.paper_threshold = float(self.get_parameter('paper_threshold').value)
-        self.trigger_count = int(self.get_parameter('trigger_count').value)
-        self.home_pose_name = str(self.get_parameter('home_pose_name').value)
-
-        # --------------------------------------------------
-        # Idle -> Go HOME bila tiada kerja
-        # --------------------------------------------------
-        self.declare_parameter('idle_go_home', True)
-        self.declare_parameter('idle_timeout_sec', 30.0)  # queue kosong > 30s => balik home
-
-        self.idle_go_home = bool(self.get_parameter('idle_go_home').value)
-        self.idle_timeout_sec = float(self.get_parameter('idle_timeout_sec').value)
-
-        # --------------------------------------------------
         # State
         # --------------------------------------------------
         self.request_queue = []
@@ -78,14 +58,6 @@ class PoseManagerNode(Node):
         self.current_goal_handle = None
         self.queue_wait_start = None
 
-        # Paper low state
-        self.paper_low_count = 0
-        self.paper_low_mode = False
-
-        # Activity tracking for idle-home
-        self.last_activity_time = self.get_clock().now()
-        self.idle_home_sent = False
-
         # --------------------------------------------------
         # Subscribers
         # --------------------------------------------------
@@ -93,194 +65,49 @@ class PoseManagerNode(Node):
         self.create_subscription(String, '/go_to_pose', self.go_to_pose_cb, 10)
         self.create_subscription(String, '/cancel_pose', self.cancel_pose_cb, 10)
         self.create_subscription(String, '/show_queue', self.show_queue_cb, 10)
-        self.create_subscription(String, '/paper_request', self.paper_request_cb, 10)
-        self.create_subscription(Float32, '/paper_weight', self.paper_weight_cb, 10)
+        self.create_subscription(String, '/paper_request', self.paper_request_cb, 10)  # <-- new
 
         # --------------------------------------------------
         # Timers
         # --------------------------------------------------
         self.create_timer(2.0, self.process_queue)
         self.create_timer(1.0, self.publish_robot_pose)
-        self.create_timer(1.0, self.check_idle_go_home)  # ✅ idle checker
 
-        self.get_logger().info("Pose Manager READY (Paper low + Idle -> HOME via Nav2)")
-
-    # ==================================================
-    # ACTIVITY TRACKING (IDLE TIMER RESET)
-    # ==================================================
-    def touch_activity(self):
-        """Reset idle timer bila ada aktiviti / kerja."""
-        self.last_activity_time = self.get_clock().now()
-        self.idle_home_sent = False
-
-    # ==================================================
-    # IDLE CHECKER -> queue kosong lama => HOME
-    # ==================================================
-    def check_idle_go_home(self):
-        if not self.idle_go_home:
-            return
-
-        # kalau sedang navigate, jangan kacau
-        if self.is_navigating:
-            return
-
-        # kalau paper_low_mode sedang paksa HOME, jangan kacau
-        if self.paper_low_mode:
-            return
-
-        # kalau masih ada kerja, jangan home
-        if self.request_queue:
-            return
-
-        # kalau dah pernah queue-kan HOME utk idle, jangan ulang
-        if self.idle_home_sent:
-            return
-
-        idle_sec = (self.get_clock().now() - self.last_activity_time).nanoseconds / 1e9
-        if idle_sec < self.idle_timeout_sec:
-            return
-
-        # pastikan HOME pose wujud
-        try:
-            with open(self.saved_poses_file) as f:
-                poses = yaml.safe_load(f) or {}
-            if self.home_pose_name not in poses:
-                self.get_logger().error(
-                    f"[IDLE HOME] Home pose '{self.home_pose_name}' tak wujud. Save dulu guna /save_pose '{self.home_pose_name}'."
-                )
-                return
-        except Exception as e:
-            self.get_logger().error(f"[IDLE HOME] gagal baca saved_poses.yaml: {e}")
-            return
-
-        # Queue-kan HOME dan biar process_queue hantar goal
-        if self.home_pose_name in self.request_queue:
-            self.request_queue.remove(self.home_pose_name)
-        self.request_queue.insert(0, self.home_pose_name)
-
-        self.distance_cache.pop(self.home_pose_name, None)
-        self.pending_path.pop(self.home_pose_name, None)
-
-        self.idle_home_sent = True
-        self.get_logger().info(f"[IDLE HOME] Queue kosong {idle_sec:.1f}s → balik HOME")
-        self.publish_queue_status()
-
-    # ==================================================
-    # PAPER WEIGHT CALLBACK (trigger go home)
-    # ==================================================
-    def paper_weight_cb(self, msg: Float32):
-        w = float(msg.data)
-
-        if w < self.paper_threshold:
-            self.paper_low_count += 1
-        else:
-            self.paper_low_count = 0
-
-        if (not self.paper_low_mode) and (self.paper_low_count >= self.trigger_count):
-            self.paper_low_mode = True
-            self.get_logger().warning(
-                f"Paper LOW! w={w:.3f} < {self.paper_threshold}. Going HOME first."
-            )
-            self.go_home_priority()
-
-    def go_home_priority(self):
-        # Home pose must exist
-        try:
-            with open(self.saved_poses_file) as f:
-                poses = yaml.safe_load(f) or {}
-            if self.home_pose_name not in poses:
-                self.get_logger().error(
-                    f"Home pose '{self.home_pose_name}' not found. Save it first using /save_pose with '{self.home_pose_name}'."
-                )
-                self.paper_low_mode = False
-                self.paper_low_count = 0
-                return
-        except Exception as e:
-            self.get_logger().error(f"Failed to read saved_poses.yaml: {e}")
-            self.paper_low_mode = False
-            self.paper_low_count = 0
-            return
-
-        # Cancel current Nav2 goal if any
-        try:
-            if self.current_goal_handle:
-                self.current_goal_handle.cancel_goal_async()
-        except Exception:
-            pass
-
-        # Put HOME at the FRONT (queue lama kekal)
-        if self.home_pose_name in self.request_queue:
-            self.request_queue.remove(self.home_pose_name)
-        self.request_queue.insert(0, self.home_pose_name)
-
-        # Reset caches for HOME so planner compute again
-        self.distance_cache.pop(self.home_pose_name, None)
-        self.pending_path.pop(self.home_pose_name, None)
-
-        # Reset navigation state (biar process_queue hantar goal home)
-        self.is_navigating = False
-        self.current_target = None
-        self.current_goal_handle = None
-        self.queue_wait_start = None
-
-        self.touch_activity()
-        self.publish_queue_status()
+        self.get_logger().info("Pose Manager READY (FULL FIXED VERSION)")
 
     # ==================================================
     # PAPER REQUEST CALLBACK (from ESP32)
     # ==================================================
     def paper_request_cb(self, msg):
         """
-        Terima arahan dari /paper_request.
-        Support 2 format:
-        1) "request table1" / "cancel table2"
-        2) "q 1" / "f 2"   (q=request, f=cancel)
+        Terima arahan dari PaperSerialFilter:
+        Contoh msg.data: "request table1" atau "cancel table2"
         """
         try:
-            s = msg.data.strip()
-            if not s:
-                return
-
-            parts = s.split()
+            parts = msg.data.split()
             if len(parts) != 2:
-                self.get_logger().warning(f"Format msg salah: '{s}'")
+                self.get_logger().warning(f"Format msg salah: {msg.data}")
                 return
-
-            action, target = parts[0].lower(), parts[1].lower()
-
-            # Convert q/f -> request/cancel
-            if action == "q":
-                action = "request"
-            elif action == "f":
-                action = "cancel"
-
-            # Normalize target -> tableX
-            if target.isdigit():
-                table_name = f"table{target}"
-            else:
-                table_name = target
+            action, table_name = parts
 
             if action == "request":
+                # Tambah ke queue navigasi
                 if table_name not in self.request_queue:
                     self.request_queue.append(table_name)
                     self.distance_cache.pop(table_name, None)
                     self.queue_wait_start = None
-                    self.touch_activity()
                     self.publish_queue_status()
                     self.get_logger().info(f"📥 Queue updated: REQUEST {table_name}")
-
             elif action == "cancel":
+                # Buang dari queue navigasi
                 if table_name in self.request_queue:
                     self.request_queue.remove(table_name)
-
                 if self.is_navigating and table_name == self.current_target and self.current_goal_handle:
                     self.current_goal_handle.cancel_goal_async()
-
                 self.publish_queue_status()
                 self.get_logger().info(f"📤 Queue updated: CANCEL {table_name}")
-
             else:
-                self.get_logger().warning(f"Action tidak dikenali: {action} (msg='{s}')")
+                self.get_logger().warning(f"Action tidak dikenali: {action}")
 
         except Exception as e:
             self.get_logger().error(f"paper_request_cb error: {e}")
@@ -338,7 +165,6 @@ class PoseManagerNode(Node):
             self.request_queue.append(name)
             self.distance_cache.pop(name, None)
             self.queue_wait_start = None
-            self.touch_activity()
             self.publish_queue_status()
 
     def cancel_pose_cb(self, msg):
@@ -391,7 +217,6 @@ class PoseManagerNode(Node):
                 poses = yaml.safe_load(f) or {}
             if name not in poses:
                 return
-
             goal = ComputePathToPose.Goal()
             goal.goal.header.frame_id = 'map'
             goal.goal.pose.position.x = poses[name]['position']['x']
@@ -434,10 +259,6 @@ class PoseManagerNode(Node):
         try:
             with open(self.saved_poses_file) as f:
                 poses = yaml.safe_load(f) or {}
-            if name not in poses:
-                self.get_logger().error(f"Pose '{name}' not found in saved_poses.yaml")
-                return
-
             goal = NavigateToPose.Goal()
             goal.pose.header.frame_id = 'map'
             goal.pose.header.stamp = self.get_clock().now().to_msg()
@@ -445,6 +266,7 @@ class PoseManagerNode(Node):
             goal.pose.pose.position.y = poses[name]['position']['y']
             goal.pose.pose.position.z = poses[name]['position'].get('z', 0.0)
 
+            # ✅ Gunakan full quaternion
             goal.pose.pose.orientation.x = poses[name]['orientation'].get('x', 0.0)
             goal.pose.pose.orientation.y = poses[name]['orientation'].get('y', 0.0)
             goal.pose.pose.orientation.z = poses[name]['orientation'].get('z', 0.0)
@@ -464,28 +286,16 @@ class PoseManagerNode(Node):
 
     def nav_goal_cb(self, future):
         gh = future.result()
-        if not gh or not gh.accepted:
+        if not gh.accepted:
             self.is_navigating = False
             return
         self.current_goal_handle = gh
         gh.get_result_async().add_done_callback(self.nav_result_cb)
 
     def nav_result_cb(self, future):
-        finished = self.current_target
-
         self.is_navigating = False
         self.current_goal_handle = None
         self.current_target = None
-
-        # Reset idle timer bila navigation tamat
-        self.touch_activity()
-
-        # If we just arrived HOME (paper low), resume normal queue mode
-        if self.paper_low_mode and finished == self.home_pose_name:
-            self.paper_low_mode = False
-            self.paper_low_count = 0
-            self.get_logger().info("Arrived HOME (paper low). Resume normal queue.")
-
         self.publish_queue_status()
 
     # ==================================================
@@ -493,20 +303,11 @@ class PoseManagerNode(Node):
     # ==================================================
     def publish_queue_status(self):
         lines = ["=== QUEUE STATUS ==="]
-
         if self.is_navigating and self.current_target:
-            if self.paper_low_mode and self.current_target == self.home_pose_name:
-                lines.append("ACTIVE → HOME (paper low)")
-            else:
-                lines.append(f"ACTIVE → {self.current_target}")
-
-        if not self.request_queue:
-            lines.append("(queue kosong)")
-
+            lines.append(f"ACTIVE → {self.current_target}")
         for i, name in enumerate(self.request_queue, 1):
             dist = self.distance_cache.get(name, "calculating...")
             lines.append(f"{i}. {name} → {dist}")
-
         self.queue_pub.publish(String(data="\n".join(lines)))
 
     def show_queue_cb(self, msg):
