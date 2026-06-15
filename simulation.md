@@ -83,7 +83,7 @@ This will start:
 ### Terminal 2 — Launch Control + SLAM
 
 ```bash
-ros2 launch protobot lauch_sim_control.launch.py \
+ros2 launch protobot launch_sim_control.launch.py \
 use_slam_option:=online_async_slam
 ```
 
