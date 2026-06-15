@@ -173,7 +173,7 @@ ros2 launch protobot launch_sim_slam.launch.py
 Terminal 2 — Launch Control + Localization:
 
 ```bash
-ros2 launch protobot lauch_sim_control.launch.py \
+ros2 launch protobot launch_sim_control.launch.py \
 use_slam_option:=mapper_params_localization
 ```
 
