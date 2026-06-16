@@ -39,7 +39,7 @@ Mapping is performed using `slam_toolbox` with `online_async_slam`.
 Open Terminal 1:
 
 ```bash
-ros2 launch protobot lauch_robot.lauch.py
+ros2 launch protobot launch_robot.launch.py
 ```
 
 ---
@@ -49,7 +49,7 @@ ros2 launch protobot lauch_robot.lauch.py
 Open Terminal 2:
 
 ```bash
-ros2 launch protobot lauch_sim_control.launch.py use_slam_option:=online_async_slam use_sim_time:=false
+ros2 launch protobot launch_sim_control.launch.py use_slam_option:=online_async_slam use_sim_time:=false
 ```
 
 This will start:
@@ -179,7 +179,7 @@ Replace `my_map` with your saved map filename.
 Terminal 1:
 
 ```bash
-ros2 launch protobot lauch_robot.lauch.py
+ros2 launch protobot launch_robot.launch.py
 ```
 
 ---
@@ -189,7 +189,7 @@ ros2 launch protobot lauch_robot.lauch.py
 Terminal 2:
 
 ```bash
-ros2 launch protobot lauch_sim_control.launch.py use_slam_option:=mapper_params_localization use_sim_time:=false
+ros2 launch protobot launch_sim_control.launch.py use_slam_option:=mapper_params_localization use_sim_time:=false
 ```
 
 ---
@@ -209,15 +209,15 @@ ros2 launch protobot lauch_sim_control.launch.py use_slam_option:=mapper_params_
 ### Mapping Mode
 
 ```bash
-ros2 launch protobot lauch_robot.lauch.py
-ros2 launch protobot lauch_sim_control.launch.py use_slam_option:=online_async_slam use_sim_time:=false
+ros2 launch protobot launch_robot.launch.py
+ros2 launch protobot launch_sim_control.launch.py use_slam_option:=online_async_slam use_sim_time:=false
 ```
 
 ### Localization Mode
 
 ```bash
-ros2 launch protobot lauch_robot.lauch.py
-ros2 launch protobot lauch_sim_control.launch.py use_slam_option:=mapper_params_localization use_sim_time:=false
+ros2 launch protobot launch_robot.launch.py
+ros2 launch protobot launch_sim_control.launch.py use_slam_option:=mapper_params_localization use_sim_time:=false
 ```
 
 ### Save Table Pose
